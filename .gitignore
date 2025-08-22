@@ -1,17 +1,21 @@
-# Solo subir backend y frontend, sin archivos .env
+# Ignorar todo por defecto
 *
+
+# ¡Excepto backend y frontend y todo su contenido!
 !backend/
+!backend/**
 !frontend/
+!frontend/**
+
+# Ignorar archivos .env y node_modules dentro de backend y frontend
 backend/.env
 frontend/.env
-# Ignorar node_modules y otros archivos comunes
 backend/node_modules/
 frontend/node_modules/
-# Ignorar archivos de sistema
+
+# Ignorar archivos de sistema y temporales
 .DS_Store
 Thumbs.db
-# Ignorar logs
 *.log
-# Ignorar archivos temporales
 *.tmp
 *.swp

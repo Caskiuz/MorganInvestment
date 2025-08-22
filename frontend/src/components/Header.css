@@ -1,0 +1,12 @@
+.header {
+  @apply flex items-center justify-between px-6 py-4 bg-white shadow-md fixed w-full top-0 z-50;
+}
+.logo {
+  @apply text-2xl font-bold text-green-700 tracking-wide;
+}
+nav button {
+  @apply bg-transparent text-gray-700 hover:text-green-700 font-medium px-3 py-2 transition;
+}
+.cta {
+  @apply bg-green-600 text-white rounded px-4 py-2 ml-4 font-semibold shadow hover:bg-green-700 transition;
+}
