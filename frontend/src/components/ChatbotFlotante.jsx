@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export default function ChatbotFlotante() {
   const [isOpen, setIsOpen] = useState(false);
-  const [currentView, setCurrentView] = useState('menu'); // 'menu', 'faq', 'chat'
+  const [currentView, setCurrentView] = useState('chat'); // 'menu', 'faq', 'chat'
   const [messages, setMessages] = useState([]);
   const [showWelcome, setShowWelcome] = useState(true);
+  const [input, setInput] = useState("");
+  const inputRef = useRef(null);
 
   const isInStore = typeof window !== 'undefined' && window.location.pathname.includes('/tienda');
 
@@ -46,11 +48,25 @@ export default function ChatbotFlotante() {
 
     setMessages(prev => [...prev, userMessage, botResponse, moreHelp]);
     setCurrentView('chat');
-
-    // pequeño delay para scroll o efectos futuros
     setTimeout(() => {
       const container = document.getElementById('messages-container');
       if (container) container.scrollTop = container.scrollHeight;
+      if (inputRef.current) inputRef.current.focus();
+    }, 200);
+  };
+  // Simulación de respuesta para preguntas escritas
+  const handleSend = (e) => {
+    e.preventDefault();
+    if (!input.trim()) return;
+    const userMessage = { id: Date.now(), text: input, sender: 'user', timestamp: new Date() };
+    // Respuesta simulada
+    const botResponse = { id: Date.now() + 1, text: 'Gracias por tu pregunta. Pronto un asesor te responderá o usa WhatsApp para atención inmediata.', sender: 'bot', timestamp: new Date() };
+    setMessages(prev => [...prev, userMessage, botResponse]);
+    setInput("");
+    setTimeout(() => {
+      const container = document.getElementById('messages-container');
+      if (container) container.scrollTop = container.scrollHeight;
+      if (inputRef.current) inputRef.current.focus();
     }, 200);
   };
 
@@ -58,8 +74,8 @@ export default function ChatbotFlotante() {
     let message = '¡Hola! Me interesa información sobre ';
     message += isInStore ? 'los productos de la tienda.' : 'los servicios de reservación.';
 
-    // Abre el chat de WhatsApp (usa wa.link o wa.me con tu número si lo prefieres)
-    const url = `https://wa.link/gpu01d?text=${encodeURIComponent(message)}`;
+    // Abre el chat de WhatsApp sin número, solo con el mensaje
+    const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
   };
 
@@ -76,7 +92,10 @@ export default function ChatbotFlotante() {
   const toggleChat = () => {
     const willOpen = !isOpen;
     setIsOpen(willOpen);
-    if (willOpen) setCurrentView('chat');
+    if (willOpen) {
+      setCurrentView('chat');
+      setShowWelcome(true);
+    }
   };
 
   return (
@@ -97,20 +116,7 @@ export default function ChatbotFlotante() {
           </div>
 
           <div className="flex-1 overflow-hidden">
-            {currentView === 'menu' && (
-              <div className="p-4 h-full flex flex-col">
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-[#6FAD46] rounded-full flex items-center justify-center mx-auto mb-2">🌿</div>
-                  <h4 className="font-semibold text-gray-800">¿Cómo te puedo ayudar?</h4>
-                  <p className="text-sm text-gray-600">Selecciona una opción:</p>
-                </div>
-
-                <div className="space-y-2 flex-1">
-                  <button onClick={() => setCurrentView('faq')} className="w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg text-left">❓ Preguntas Frecuentes</button>
-                  <button onClick={handleWhatsApp} className="w-full p-3 bg-green-50 hover:bg-green-100 rounded-lg text-left">💬 Chatear por WhatsApp</button>
-                </div>
-              </div>
-            )}
+            {/* Vista menú eliminada, ahora siempre inicia en chat con bienvenida */}
 
             {currentView === 'faq' && (
               <div className="p-4 h-full overflow-y-auto">
@@ -131,22 +137,46 @@ export default function ChatbotFlotante() {
 
             {currentView === 'chat' && (
               <div className="h-full flex flex-col">
+
                 <div className="flex-1 overflow-y-auto p-3 space-y-3" id="messages-container">
-                  {messages.map(msg => (
+                  {messages.map((msg, idx) => (
                     <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[80%] p-3 rounded-lg ${msg.sender === 'user' ? 'bg-[#6FAD46] text-white' : 'bg-gray-100 text-gray-800'}`}>
-                        <p className="text-sm whitespace-pre-line">{msg.text}</p>
+                      <div className={`max-w-[80%] p-3 rounded-2xl shadow ${msg.sender === 'user' ? 'bg-gradient-to-br from-green-400 to-green-600 text-white' : 'bg-white text-gray-800 border border-gray-100'} ${msg.showOptions ? 'border-green-200' : ''}`}
+                        style={msg.showOptions ? {boxShadow:'0 0 0 2px #bbf7d0'} : {}}>
+                        <p className={`text-sm whitespace-pre-line ${msg.showOptions ? 'font-semibold text-green-700 mb-2' : ''}`}>{msg.text}</p>
+                        {/* Si es el mensaje de opciones, mostrar chips de ejemplo */}
+                        {msg.showOptions && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {faqs.map(faq => (
+                              <button
+                                key={faq.id}
+                                onClick={() => handleFaqClick(faq)}
+                                className="px-3 py-1 bg-green-100 hover:bg-green-200 text-green-800 rounded-full border border-green-300 text-xs font-medium shadow-sm transition flex items-center gap-1"
+                                style={{boxShadow:'0 1px 2px #bbf7d0'}}
+                              >
+                                <span>❓</span> {faq.question}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="p-2 border-t bg-gray-50">
-                  <div className="flex gap-2">
-                    <button onClick={resetChat} className="flex-1 p-2 bg-gray-200 rounded">🔄 Nuevo chat</button>
-                    <button onClick={handleWhatsApp} className="p-2 bg-green-500 text-white rounded">💬 WhatsApp</button>
-                  </div>
-                </div>
+                <form className="p-2 border-t bg-gray-50 flex gap-2 items-center" onSubmit={handleSend} autoComplete="off">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    className="flex-1 p-2 rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-300 text-sm"
+                    placeholder="Escribe tu pregunta..."
+                    value={input}
+                    onChange={e => setInput(e.target.value)}
+                  />
+                  <button type="submit" className="p-2 bg-green-500 hover:bg-green-600 text-white rounded transition">Enviar</button>
+                  <button type="button" onClick={resetChat} className="p-2 bg-gray-200 rounded ml-1" title="Nuevo chat">🔄</button>
+                  <button type="button" onClick={handleWhatsApp} className="p-2 bg-green-100 hover:bg-green-200 text-green-700 rounded ml-1 border border-green-300" title="WhatsApp"><span className="text-lg">💬</span></button>
+                </form>
               </div>
             )}
           </div>

@@ -7,7 +7,7 @@
     height: 100%;
   }
   body {
-    @apply bg-gray-50 text-gray-800 leading-relaxed;
+    @apply bg-white text-gray-800 leading-relaxed;
     font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   }
 

@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import User from './models/User.js';
+import publicDataRoutes from './routes/publicData.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
@@ -12,13 +13,27 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change';
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/public', publicDataRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/reservas';
 
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB conectado'))
-  .catch(err => console.error('Error de conexión a MongoDB:', err));
+mongoose.connection.on('connecting', () => {
+  console.log('Intentando conectar a MongoDB...');
+});
+mongoose.connection.on('connected', () => {
+  console.log('✅ Conexión a MongoDB establecida:', MONGO_URI);
+});
+mongoose.connection.on('error', (err) => {
+  console.error('❌ Error de conexión a MongoDB:', err);
+});
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠️  Desconectado de MongoDB');
+});
+mongoose.connection.on('reconnected', () => {
+  console.log('🔄 Reconectado a MongoDB');
+});
+mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 app.get('/', (req, res) => {
   res.send('API de Reservas Montemorelos funcionando');
