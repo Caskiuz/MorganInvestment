@@ -33,7 +33,7 @@ mongoose.connection.on('disconnected', () => {
 mongoose.connection.on('reconnected', () => {
   console.log('🔄 Reconectado a MongoDB');
 });
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(MONGO_URI);
 
 app.get('/', (req, res) => {
   res.send('API de Reservas Montemorelos funcionando');
