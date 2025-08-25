@@ -60,7 +60,21 @@ mongoose.connection.on('disconnected', () => {
 mongoose.connection.on('reconnected', () => {
   console.log('🔄 Reconectado a MongoDB');
 });
-mongoose.connect(MONGO_URI);
+
+// Validar variables de entorno críticas
+if (!MONGO_URI) {
+  console.error('FATAL: MONGO_URI no definido. Revisa backend/.env o variables en el entorno.');
+  process.exit(1);
+}
+
+// Conectar con opciones que controlan timeouts para obtener logs más claros
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(MONGO_URI, { serverSelectionTimeoutMS: 10000 })
+    .then(() => console.log('✅ Conexión a MongoDB (connect promise resolved)'))
+    .catch(err => console.error('❌ Error inicial al conectar a MongoDB:', err));
+} else {
+  console.log('Modo test: la conexión a MongoDB será controlada por el suite de tests');
+}
 
 app.get('/', (req, res) => {
   res.send('API de Reservas Montemorelos funcionando');
@@ -121,6 +135,10 @@ app.get('/api/me', authMiddleware, async (req, res) => {
   res.json({ user });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor backend escuchando en puerto ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Servidor backend escuchando en puerto ${PORT}`);
+  });
+}
+
+export default app;
