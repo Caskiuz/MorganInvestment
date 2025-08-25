@@ -124,6 +124,23 @@ export default function Reservar() {
     if (!range) { setCheckIn(''); setCheckOut(''); return; }
     const from = range.from ? range.from.toISOString().slice(0,10) : '';
     const to = range.to ? range.to.toISOString().slice(0,10) : '';
+    // validar que el rango no intersecte fechas bloqueadas
+    if (from && to) {
+      const f = new Date(from);
+      const t = new Date(to);
+      let invalid = false;
+      const blockedSet = new Set(blockedDates);
+      const cursor = new Date(f);
+      while (cursor <= t) {
+        if (blockedSet.has(cursor.toISOString().slice(0,10))) { invalid = true; break; }
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      if (invalid) {
+        setMsg({ type: 'error', text: 'El rango seleccionado incluye fechas ya ocupadas. Elige otras fechas.' });
+        return;
+      }
+    }
+    setMsg(null);
     setCheckIn(from);
     setCheckOut(to);
   };
