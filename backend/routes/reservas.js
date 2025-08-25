@@ -1,6 +1,11 @@
 import express from 'express';
 import Reservation from '../models/Reservation.js';
 
+// Helper para comprobar solapamiento de fechas
+function rangesOverlap(aStart, aEnd, bStart, bEnd) {
+  return (aStart < bEnd) && (bStart < aEnd);
+}
+
 const router = express.Router();
 
 // Crear reserva
@@ -13,10 +18,42 @@ router.post('/', async (req, res) => {
     const co = new Date(checkOut);
     if (ci >= co) return res.status(400).json({ error: 'Fechas inválidas' });
 
-    // Aquí debería comprobar disponibilidad (por ahora simple)
-    const reservation = new Reservation({ name, email, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount });
+    // Comprobar disponibilidad: buscar reservas que solapen
+    const conflicts = await Reservation.find({ alojamientoId, status: { $in: ['pending','confirmed'] },
+      $or: [
+        { $and: [ { checkIn: { $lte: co } }, { checkOut: { $gt: ci } } ] }
+      ]
+    });
+    if (conflicts && conflicts.length > 0) {
+      return res.status(409).json({ error: 'Fechas no disponibles', conflicts });
+    }
+
+    // Crear reserva — en demo la marcamos como 'confirmed' para permitir pruebas sin pasarela
+    const reservation = new Reservation({ name, email, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount, status: 'confirmed' });
     await reservation.save();
     res.json({ ok: true, reservation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// Comprobar disponibilidad (POST body: alojamientoId, checkIn, checkOut)
+router.post('/check', async (req, res) => {
+  try {
+    const { alojamientoId, checkIn, checkOut } = req.body;
+    if (!alojamientoId || !checkIn || !checkOut) return res.status(400).json({ error: 'Faltan datos' });
+    const ci = new Date(checkIn);
+    const co = new Date(checkOut);
+    if (ci >= co) return res.status(400).json({ error: 'Fechas inválidas' });
+
+    const conflicts = await Reservation.find({ alojamientoId, status: { $in: ['pending','confirmed'] },
+      $or: [
+        { $and: [ { checkIn: { $lte: co } }, { checkOut: { $gt: ci } } ] }
+      ]
+    });
+    if (conflicts && conflicts.length > 0) return res.json({ available: false, conflicts });
+    return res.json({ available: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error interno' });

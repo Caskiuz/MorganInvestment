@@ -4,6 +4,7 @@ import cors from 'cors';
 import User from './models/User.js';
 import publicDataRoutes from './routes/publicData.js';
 import reservasRoutes from './routes/reservas.js';
+import alojamientosRoutes from './routes/alojamientos.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use('/api/public', publicDataRoutes);
 app.use('/api/reservas', reservasRoutes);
+app.use('/api/alojamientos', alojamientosRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/reservas';
