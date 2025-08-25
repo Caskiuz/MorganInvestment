@@ -28,10 +28,47 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Fechas no disponibles', conflicts });
     }
 
-    // Crear reserva — en demo la marcamos como 'confirmed' para permitir pruebas sin pasarela
-    const reservation = new Reservation({ name, email, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount, status: 'confirmed' });
+    // Crear reserva — marcamos como 'pending' hasta confirmación manual o pago
+    const reservation = new Reservation({ name, email, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount, status: 'pending' });
     await reservation.save();
     res.json({ ok: true, reservation });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// Middleware simple para admin: usa HEADER ADMIN_SECRET (configurar en env)
+const adminMiddleware = (req, res, next) => {
+  const secret = req.headers['x-admin-secret'] || req.query.admin_secret;
+  if (!secret || secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'No autorizado (admin)' });
+  next();
+};
+
+// Confirmar reserva (admin)
+router.patch('/:id/confirm', adminMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const r = await Reservation.findById(id);
+    if (!r) return res.status(404).json({ error: 'Reserva no encontrada' });
+    r.status = 'confirmed';
+    await r.save();
+    res.json({ ok: true, reservation: r });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
+// Cancelar reserva (admin)
+router.patch('/:id/cancel', adminMiddleware, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const r = await Reservation.findById(id);
+    if (!r) return res.status(404).json({ error: 'Reserva no encontrada' });
+    r.status = 'cancelled';
+    await r.save();
+    res.json({ ok: true, reservation: r });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error interno' });

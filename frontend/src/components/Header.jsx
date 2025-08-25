@@ -93,6 +93,7 @@ export default function Header({ onNav }) {
               Iniciar sesión
             </button>
           )}
+          <a className="ml-6 text-gray-700 hover:text-green-700" href="/admin.html" target="_blank" rel="noreferrer">Admin</a>
         </nav>
         <div className="hidden md:block ml-4"><AuthStatus /></div>
       </div>
