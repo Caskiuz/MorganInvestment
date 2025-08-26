@@ -45,17 +45,31 @@ export default function AdminAlojamientos() {
     });
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `${API_BASE}/alojamientos/${editId}` : `${API_BASE}/alojamientos`;
-    const res = await fetch(url, { method, headers: { 'x-admin-secret': ADMIN_SECRET }, body: fd });
-    const data = await res.json();
-    if (!res.ok) setMsg(data.error || 'Error');
-  else { setMsg('Guardado'); setForm({ name: '', description: '', price: '', capacity: '', extras: [], newExtra: '', images: [] }); setEditId(null); fetchList(); }
+    if (ADMIN_SECRET) {
+      const res = await fetch(url, { method, headers: { 'x-admin-secret': ADMIN_SECRET }, body: fd });
+      const data = await res.json();
+      if (!res.ok) setMsg(data.error || 'Error');
+      else { setMsg('Guardado'); setForm({ name: '', description: '', price: '', capacity: '', extras: [], newExtra: '', images: [] }); setEditId(null); fetchList(); }
+    } else {
+      const { fetchAuth } = await import('../../services/api');
+      const res2 = await fetchAuth(url, { method, body: fd });
+      const data = await res2.json();
+      if (!res2.ok) setMsg(data.error || 'Error');
+      else { setMsg('Guardado'); setForm({ name: '', description: '', price: '', capacity: '', extras: [], newExtra: '', images: [] }); setEditId(null); fetchList(); }
+    }
     setLoading(false);
   };
 
   const handleEdit = a => setForm({ ...a, images: [], extras: Array.isArray(a.extras) ? a.extras : (typeof a.extras === 'string' ? a.extras.split(',').map(e=>e.trim()).filter(Boolean) : []) , newExtra: '' }) || setEditId(a._id);
   const handleDelete = async id => { if (!window.confirm('¿Eliminar?')) return;
-    const res = await fetch(`${API_BASE}/alojamientos/${id}`, { method: 'DELETE', headers: { 'x-admin-secret': ADMIN_SECRET } });
-    if (res.ok) fetchList();
+    if (ADMIN_SECRET) {
+      const res = await fetch(`${API_BASE}/alojamientos/${id}`, { method: 'DELETE', headers: { 'x-admin-secret': ADMIN_SECRET } });
+      if (res.ok) fetchList();
+    } else {
+      const { fetchAuth } = await import('../../services/api');
+      const res2 = await fetchAuth(`${API_BASE}/alojamientos/${id}`, { method: 'DELETE' });
+      if (res2.ok) fetchList();
+    }
   };
 
   // Filtros y exportación CSV

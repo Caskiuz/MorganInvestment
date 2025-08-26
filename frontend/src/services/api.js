@@ -1,5 +1,6 @@
 // Base URL de la API (usa VITE_API_BASE si está presente, si no construye desde VITE_API_URL)
 const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '');
+import auth from '../utils/auth';
 
 // Enviar testimonio
 export async function postTestimonio({ nombre, texto }) {
@@ -106,4 +107,12 @@ export async function me(token) {
   } catch (err) {
     return { error: 'Error de red' };
   }
+}
+
+// Helper para fetch con token Authorization si existe
+export function fetchAuth(url, opts = {}) {
+  const token = auth.getToken();
+  const headers = opts.headers ? { ...opts.headers } : {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  return fetch(url, { ...opts, headers });
 }
