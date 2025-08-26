@@ -21,7 +21,7 @@ export default function Reservar() {
         const res = await fetch(`${API_BASE}/alojamientos`);
         const data = await res.json();
         setAlojamientos(data);
-        if (data && data.length) { setSelected(data[0].id); }
+  if (data && data.length) { setSelected(data[0]._id); }
       } catch (e) { console.error(e); }
     };
     fetchA();
@@ -58,7 +58,7 @@ export default function Reservar() {
     const d1 = new Date(ci);
     const d2 = new Date(co);
     const nights = Math.max(0, Math.ceil((d2 - d1) / (1000*60*60*24)));
-    const alojamiento = alojamientos.find(a => a.id === alojamientoId);
+  const alojamiento = alojamientos.find(a => a._id === alojamientoId);
     return (alojamiento ? alojamiento.price : 0) * nights;
   };
 
@@ -165,7 +165,7 @@ export default function Reservar() {
         <label className="flex flex-col text-left">
           <span className="mb-1 font-medium">Cabaña a rentar</span>
           <select name="cabana" value={selected || ''} className="border rounded px-3 py-2" onChange={(e) => setSelected(e.target.value)}>
-            {alojamientos.map(a => (<option key={a.id} value={a.id}>{a.name} — ${a.price}/noche</option>))}
+            {alojamientos.map(a => (<option key={a._id} value={a._id}>{a.name} — ${a.price}/noche</option>))}
           </select>
         </label>
 

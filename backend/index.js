@@ -1,13 +1,18 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import User from './models/User.js';
-import publicDataRoutes from './routes/publicData.js';
-import reservasRoutes from './routes/reservas.js';
-import alojamientosRoutes from './routes/alojamientos.js';
+import path from 'path';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+// Modelos
+import User from './models/User.js';
+// Rutas
+import publicDataRoutes from './routes/publicData.js';
+import reservasRoutes from './routes/reservas.js';
+import alojamientosRoutes from './routes/alojamientos.js';
+import bloqueosRoutes from './routes/bloqueos.js';
+import usersAdminRoutes from './routes/users.js';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change';
@@ -15,14 +20,21 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change';
 const app = express();
 
 // Allow configuring the allowed origin from env (e.g. https://lascoloradasalpinas.com.mx)
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || process.env.VITE_API_URL || '*';
+// FRONTEND_ORIGIN puede estar configurado; en desarrollo permitir también localhost para evitar bloqueos CORS
+let FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'https://morganinvestment-production.up.railway.app';
+const DEV_ALLOWED = ['http://localhost:5173','http://localhost:5174','http://localhost:3000'];
+const dynamicOrigin = (origin, callback) => {
+  if (!origin) return callback(null, FRONTEND_ORIGIN); // SSR / same-origin
+  if (origin === FRONTEND_ORIGIN || DEV_ALLOWED.includes(origin)) return callback(null, origin);
+  return callback(new Error('CORS bloqueado para origen: ' + origin));
+};
 
 // CORS options: allow credentials and the common methods
 const corsOptions = {
-  origin: FRONTEND_ORIGIN,
+  origin: dynamicOrigin,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin','x-admin-secret']
 };
 
 // Apply CORS with explicit options and respond to preflight requests
@@ -31,16 +43,30 @@ app.options('*', cors(corsOptions));
 
 // Ensure CORS headers are present even when errors happen
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', corsOptions.origin);
-  res.header('Access-Control-Allow-Credentials', String(!!corsOptions.credentials));
+  const reqOrigin = req.headers.origin;
+  if (reqOrigin && (reqOrigin === FRONTEND_ORIGIN || DEV_ALLOWED.includes(reqOrigin))) {
+    res.header('Access-Control-Allow-Origin', reqOrigin);
+  } else {
+    res.header('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+  }
+  res.header('Vary', 'Origin');
+  res.header('Access-Control-Allow-Credentials', 'true');
   res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(', '));
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(', '));
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();
 });
 
 app.use(express.json());
+// Servir archivos estáticos de uploads
+app.use('/uploads', express.static(path.resolve('uploads')));
+// Rutas públicas
 app.use('/api/public', publicDataRoutes);
+// Rutas funcionales
 app.use('/api/reservas', reservasRoutes);
 app.use('/api/alojamientos', alojamientosRoutes);
+app.use('/api/bloqueos', bloqueosRoutes);
+app.use('/api/users', usersAdminRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/reservas';

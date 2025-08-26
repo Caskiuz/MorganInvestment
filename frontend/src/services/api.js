@@ -4,7 +4,7 @@ const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.VITE_API_URL 
 // Enviar testimonio
 export async function postTestimonio({ nombre, texto }) {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/testimonios`, {
+    const res = await fetch(`${API_BASE}/public/testimonios`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nombre, texto })
@@ -36,7 +36,7 @@ export async function register({ name, email, password }) {
 // Ofertas
 export async function getOfertas() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/ofertas`);
+    const res = await fetch(`${API_BASE}/public/ofertas`);
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -47,7 +47,7 @@ export async function getOfertas() {
 // Testimonios
 export async function getTestimonios() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/testimonios`);
+    const res = await fetch(`${API_BASE}/public/testimonios`);
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -58,7 +58,7 @@ export async function getTestimonios() {
 // Actividades
 export async function getActividades() {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/actividades`);
+    const res = await fetch(`${API_BASE}/public/actividades`);
     if (!res.ok) return [];
     return await res.json();
   } catch {
@@ -69,7 +69,7 @@ export async function getActividades() {
 // Newsletter
 export async function postNewsletter(email) {
   try {
-    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/public/newsletter`, {
+    const res = await fetch(`${API_BASE}/public/newsletter`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
