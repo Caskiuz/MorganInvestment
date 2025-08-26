@@ -3,6 +3,7 @@ import Alojamiento from '../models/Alojamiento.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import adminMiddleware from './_adminMiddleware.js';
 
 const router = express.Router();
 
@@ -18,12 +19,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Middleware admin simple
-const adminMiddleware = (req, res, next) => {
-  const secret = req.headers['x-admin-secret'] || req.query.admin_secret;
-  if (!secret || secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'No autorizado (admin)' });
-  next();
-};
+// Usamos el middleware centralizado en _adminMiddleware.js
 
 // GET todos
 router.get('/', async (req, res) => {

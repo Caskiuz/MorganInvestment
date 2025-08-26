@@ -1,13 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
-
-// Middleware admin reutilizando ADMIN_SECRET
-const adminMiddleware = (req, res, next) => {
-  const secret = req.headers['x-admin-secret'] || req.query.admin_secret;
-  if (!secret || secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'No autorizado (admin)' });
-  next();
-};
+import adminMiddleware from './_adminMiddleware.js';
 
 const router = express.Router();
 
