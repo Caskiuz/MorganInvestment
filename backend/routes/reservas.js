@@ -38,12 +38,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Middleware simple para admin: usa HEADER ADMIN_SECRET (configurar en env)
-const adminMiddleware = (req, res, next) => {
-  const secret = req.headers['x-admin-secret'] || req.query.admin_secret;
-  if (!secret || secret !== process.env.ADMIN_SECRET) return res.status(401).json({ error: 'No autorizado (admin)' });
-  next();
-};
+import adminMiddleware from './_adminMiddleware.js';
 
 // Confirmar reserva (admin)
 router.patch('/:id/confirm', adminMiddleware, async (req, res) => {
