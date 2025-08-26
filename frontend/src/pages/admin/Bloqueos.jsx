@@ -28,30 +28,19 @@ export default function AdminBloqueos({ alojamientos }) {
     if (!selected || !form.start || !form.end) return setMsg('Completa todos los campos');
     try {
       const body = JSON.stringify({ alojamiento: selected, ...form });
-      if (ADMIN_SECRET) {
-        const res = await fetch(`${API_BASE}/bloqueos`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET }, body });
-        if (res.ok) { setMsg('Bloqueo creado'); setForm({ start: '', end: '', motivo: '' }); fetchBloqueos(selected); }
-        else setMsg('Error');
-      } else {
-        const { fetchAuth } = await import('../../services/api');
-        const res2 = await fetchAuth(`${API_BASE}/bloqueos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-        if (res2.ok) { setMsg('Bloqueo creado'); setForm({ start: '', end: '', motivo: '' }); fetchBloqueos(selected); }
-        else setMsg('Error');
-      }
+  const { fetchAuth } = await import('../../services/api');
+  const res2 = await fetchAuth(`${API_BASE}/bloqueos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+  if (res2.ok) { setMsg('Bloqueo creado'); setForm({ start: '', end: '', motivo: '' }); fetchBloqueos(selected); }
+  else setMsg('Error');
     } catch (e) { console.error(e); setMsg('Error'); }
   };
 
   const handleDelete = async id => {
     if (!window.confirm('¿Eliminar bloqueo?')) return;
     try {
-      if (ADMIN_SECRET) {
-        const res = await fetch(`${API_BASE}/bloqueos/${id}`, { method: 'DELETE', headers: { 'x-admin-secret': ADMIN_SECRET } });
-        if (res.ok) fetchBloqueos(selected);
-      } else {
-        const { fetchAuth } = await import('../../services/api');
-        const res2 = await fetchAuth(`${API_BASE}/bloqueos/${id}`, { method: 'DELETE' });
-        if (res2.ok) fetchBloqueos(selected);
-      }
+  const { fetchAuth } = await import('../../services/api');
+  const res2 = await fetchAuth(`${API_BASE}/bloqueos/${id}`, { method: 'DELETE' });
+  if (res2.ok) fetchBloqueos(selected);
     } catch (e) { console.error(e); }
   };
 

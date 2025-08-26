@@ -29,35 +29,19 @@ export default function AdminUsuarios() {
     setLoading(true); setMsg(null);
     const method = editId ? 'PUT' : 'POST';
     const url = editId ? `${API_BASE}/users/${editId}` : `${API_BASE}/users`;
-    if (ADMIN_SECRET) {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json', 'x-admin-secret': ADMIN_SECRET },
-        body: JSON.stringify(form)
-      });
-      const data = await res.json();
-      if (!res.ok) setMsg(data.error || 'Error');
-      else { setMsg('Guardado'); setForm({ name: '', email: '', password: '', role: 'user' }); setEditId(null); fetchList(); }
-    } else {
-      const { fetchAuth } = await import('../../services/api');
-      const res2 = await fetchAuth(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      const data = await res2.json();
-      if (!res2.ok) setMsg(data.error || 'Error');
-      else { setMsg('Guardado'); setForm({ name: '', email: '', password: '', role: 'user' }); setEditId(null); fetchList(); }
-    }
+  const { fetchAuth } = await import('../../services/api');
+  const res2 = await fetchAuth(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
+  const data = await res2.json();
+  if (!res2.ok) setMsg(data.error || 'Error');
+  else { setMsg('Guardado'); setForm({ name: '', email: '', password: '', role: 'user' }); setEditId(null); fetchList(); }
     setLoading(false);
   };
 
   const handleEdit = u => setForm({ ...u, password: '' }) || setEditId(u._id);
   const handleDelete = async id => { if (!window.confirm('¿Eliminar?')) return;
-    if (ADMIN_SECRET) {
-      const res = await fetch(`${API_BASE}/users/${id}`, { method: 'DELETE', headers: { 'x-admin-secret': ADMIN_SECRET } });
-      if (res.ok) fetchList();
-    } else {
-      const { fetchAuth } = await import('../../services/api');
-      const res2 = await fetchAuth(`${API_BASE}/users/${id}`, { method: 'DELETE' });
-      if (res2.ok) fetchList();
-    }
+  const { fetchAuth } = await import('../../services/api');
+  const res2 = await fetchAuth(`${API_BASE}/users/${id}`, { method: 'DELETE' });
+  if (res2.ok) fetchList();
   };
 
   // Filtros y exportación CSV

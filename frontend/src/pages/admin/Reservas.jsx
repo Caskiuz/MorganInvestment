@@ -49,16 +49,10 @@ export default function AdminReservas() {
   const patch = async (id, action) => {
     setMsg(null);
     try {
-      if (ADMIN_SECRET) {
-        const res = await fetch(`${API_BASE}/reservas/${id}/${action}`, { method: 'PATCH', headers: { 'x-admin-secret': ADMIN_SECRET } });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error');
-      } else {
-        const { fetchAuth } = await import('../../services/api');
-        const res2 = await fetchAuth(`${API_BASE}/reservas/${id}/${action}`, { method: 'PATCH' });
-        const data2 = await res2.json();
-        if (!res2.ok) throw new Error(data2.error || 'Error');
-      }
+  const { fetchAuth } = await import('../../services/api');
+  const res2 = await fetchAuth(`${API_BASE}/reservas/${id}/${action}`, { method: 'PATCH' });
+  const data2 = await res2.json();
+  if (!res2.ok) throw new Error(data2.error || 'Error');
       setMsg('Acción completada');
       fetchReservas();
     } catch (err) { setMsg(err.message || 'Error'); }
