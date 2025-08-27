@@ -13,6 +13,28 @@ export default function Reservar() {
   const [checkOut, setCheckOut] = React.useState('');
   const [blockedDates, setBlockedDates] = React.useState([]);
 
+  // Helpers para evitar problemas de timezone: trabajaremos con fechas locales
+  const formatDateLocal = (d) => {
+    if (!d) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const parseDateLocal = (strOrDate) => {
+    if (!strOrDate) return undefined;
+    if (typeof strOrDate === 'string') {
+      // espera 'YYYY-MM-DD' o ISO; si viene YYYY-MM-DD, parsear en local
+      const m = strOrDate.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+      const d = new Date(strOrDate);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    }
+    if (strOrDate instanceof Date) return new Date(strOrDate.getFullYear(), strOrDate.getMonth(), strOrDate.getDate());
+    return undefined;
+  };
+
   const API_BASE = import.meta.env.VITE_API_BASE || (import.meta.env.VITE_API_URL + '/api');
 
   React.useEffect(() => {
@@ -38,11 +60,11 @@ export default function Reservar() {
         const data = await res.json();
         const dates = [];
         data.forEach(r => {
-          const start = new Date(r.checkIn);
-          const end = new Date(r.checkOut);
+          const start = parseDateLocal(r.checkIn) || new Date(r.checkIn);
+          const end = parseDateLocal(r.checkOut) || new Date(r.checkOut);
           const cursor = new Date(start);
           while (cursor < end) {
-            dates.push(cursor.toISOString().slice(0,10));
+            dates.push(formatDateLocal(cursor));
             cursor.setDate(cursor.getDate() + 1);
           }
         });
@@ -108,9 +130,9 @@ export default function Reservar() {
       // actualizar blocked dates
       const blocked = new Set(blockedDates);
       // add reserved days
-      let cursor = new Date(payload.checkIn);
-      const end = new Date(payload.checkOut);
-      while (cursor < end) { blocked.add(cursor.toISOString().slice(0,10)); cursor.setDate(cursor.getDate()+1); }
+  let cursor = parseDateLocal(payload.checkIn);
+  const end = parseDateLocal(payload.checkOut);
+  while (cursor < end) { blocked.add(formatDateLocal(cursor)); cursor.setDate(cursor.getDate()+1); }
       setBlockedDates(Array.from(blocked));
     } catch (err) {
       setMsg({ type: 'error', text: err.message || 'Error al crear reserva' });
@@ -122,12 +144,12 @@ export default function Reservar() {
   const onCalendarSelect = (range) => {
     // react-day-picker range selection provides { from, to }
     if (!range) { setCheckIn(''); setCheckOut(''); return; }
-    const from = range.from ? range.from.toISOString().slice(0,10) : '';
-    const to = range.to ? range.to.toISOString().slice(0,10) : '';
+  const from = range.from ? formatDateLocal(parseDateLocal(range.from)) : '';
+  const to = range.to ? formatDateLocal(parseDateLocal(range.to)) : '';
     // validar que el rango no intersecte fechas bloqueadas
     if (from && to) {
-      const f = new Date(from);
-      const t = new Date(to);
+  const f = parseDateLocal(from);
+  const t = parseDateLocal(to);
       let invalid = false;
       const blockedSet = new Set(blockedDates);
       const cursor = new Date(f);
@@ -141,8 +163,8 @@ export default function Reservar() {
       }
     }
     setMsg(null);
-    setCheckIn(from);
-    setCheckOut(to);
+  setCheckIn(from);
+  setCheckOut(to);
   };
 
   return (
@@ -186,8 +208,8 @@ export default function Reservar() {
             <DayPicker
               mode="range"
               fromMonth={new Date()}
-              selected={{ from: checkIn ? new Date(checkIn) : undefined, to: checkOut ? new Date(checkOut) : undefined }}
-              disabled={blockedDates.map(d => new Date(d))}
+              selected={{ from: checkIn ? parseDateLocal(checkIn) : undefined, to: checkOut ? parseDateLocal(checkOut) : undefined }}
+              disabled={blockedDates.map(d => parseDateLocal(d))}
               onSelect={(sel) => onCalendarSelect(sel)}
               modifiersClassNames={{ disabled: 'bg-red-200 text-red-800' }}
             />

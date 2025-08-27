@@ -93,7 +93,9 @@ export default function Header({ onNav }) {
               Iniciar sesión
             </button>
           )}
-          <a className="ml-6 text-gray-700 hover:text-green-700" href="/admin.html" target="_blank" rel="noreferrer">Admin</a>
+          {isAuth && auth.getUser && auth.getUser()?.role === 'admin' && (
+            <a className="ml-6 text-gray-700 hover:text-green-700" href="/admin">Admin</a>
+          )}
         </nav>
         <div className="hidden md:block ml-4"><AuthStatus /></div>
       </div>
@@ -176,6 +178,14 @@ export function MobileMenu({ onNav, onReservar, isAuth, onAuth, onLogout }) {
                 style={{ boxShadow: '0 0 12px #22ff2299' }}
               >
                 Iniciar sesión
+              </button>
+            )}
+            {isAuth && auth.getUser && auth.getUser()?.role === 'admin' && (
+              <button
+                className="bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg px-4 py-2 font-semibold shadow-md transition-all duration-300 mt-4"
+                onClick={() => { window.location.href = '/admin'; setOpen(false); }}
+              >
+                Admin
               </button>
             )}
           </div>
