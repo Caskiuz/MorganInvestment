@@ -12,6 +12,8 @@ export default function Reservar() {
   const [checkIn, setCheckIn] = React.useState('');
   const [checkOut, setCheckOut] = React.useState('');
   const [blockedDates, setBlockedDates] = React.useState([]);
+  const [publicConfig, setPublicConfig] = React.useState({});
+  React.useEffect(() => { import('../services/api').then(m=>m.getPublicConfig().then(setPublicConfig)); }, []);
 
   // Helpers para evitar problemas de timezone: trabajaremos con fechas locales
   const formatDateLocal = (d) => {
@@ -124,6 +126,7 @@ export default function Reservar() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
       setMsg({ type: 'success', text: 'Reserva creada correctamente. Te contactaremos pronto.' });
+  const reservationId = data.reservation?._id || data.reservation?.id || data.reservationId || data.reservation?._id;
       // limpiar formulario
       e.target.reset();
       setCheckIn(''); setCheckOut('');
@@ -134,6 +137,19 @@ export default function Reservar() {
   const end = parseDateLocal(payload.checkOut);
   while (cursor < end) { blocked.add(formatDateLocal(cursor)); cursor.setDate(cursor.getDate()+1); }
       setBlockedDates(Array.from(blocked));
+      // Si método de pago Stripe activo lanzar checkout
+      if (publicConfig.metodoPago === 'stripe' && reservationId) {
+        try {
+          const { fetchAuth } = await import('../services/api');
+          const r2 = await fetchAuth(`${API_BASE}/payments/create-checkout-session`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ reservationId }) });
+          const d2 = await r2.json();
+          if (r2.ok && d2.url) {
+            window.location.href = d2.url;
+          } else {
+            console.warn('No se pudo iniciar checkout', d2.error);
+          }
+        } catch(err) { console.error(err); }
+      }
     } catch (err) {
       setMsg({ type: 'error', text: err.message || 'Error al crear reserva' });
     } finally {
@@ -222,6 +238,7 @@ export default function Reservar() {
         </label>
 
         <button className="bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded shadow-lg transition mt-4" type="submit" disabled={loading}>{loading ? 'Enviando...' : 'Reservar'}</button>
+  {publicConfig.metodoPago==='stripe' && <p className="text-xs text-gray-500">Serás redirigido a Stripe para completar el pago.</p>}
         {msg && (
           <div className={`${msg.type === 'success' ? 'text-green-700' : 'text-red-600'} mt-3 font-medium`}>{msg.text}</div>
         )}

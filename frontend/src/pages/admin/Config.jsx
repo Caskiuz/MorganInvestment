@@ -41,11 +41,24 @@ export default function AdminConfig() {
         <Field label="Correo de contacto" name="contactoEmail" value={cfg.contactoEmail||''} onChange={handleChange} />
         <Field label="Teléfono" name="telefono" value={cfg.telefono||''} onChange={handleChange} />
         <Field label="Dirección" name="direccion" value={cfg.direccion||''} onChange={handleChange} />
-        <Field label="Método de pago" name="metodoPago" value={cfg.metodoPago||''} onChange={handleChange} />
+        <label className="flex flex-col text-sm">
+          <span className="font-medium mb-1">Método de pago</span>
+          <select name="metodoPago" className="border rounded px-3 py-2" value={cfg.metodoPago||'manual'} onChange={handleChange}>
+            <option value="manual">Manual / Transferencia</option>
+            <option value="stripe">Stripe</option>
+            <option value="paypal">PayPal</option>
+          </select>
+        </label>
         <Field label="Nombre cuenta" name="pagoCuentaNombre" value={cfg.pagoCuentaNombre||''} onChange={handleChange} />
         <Field label="Número cuenta" name="pagoCuentaNumero" value={cfg.pagoCuentaNumero||''} onChange={handleChange} />
         <Field label="Banco" name="pagoBanco" value={cfg.pagoBanco||''} onChange={handleChange} />
         <Field label="CLABE" name="pagoClabe" value={cfg.pagoClabe||''} onChange={handleChange} />
+        {cfg.metodoPago==='stripe' && (
+          <Field label="Stripe Publishable Key" name="stripePublishableKey" value={cfg.stripePublishableKey||''} onChange={handleChange} />
+        )}
+        {cfg.metodoPago==='paypal' && (
+          <Field label="PayPal Client ID" name="paypalClientId" value={cfg.paypalClientId||''} onChange={handleChange} />
+        )}
       </div>
       <div className="mt-4 grid md:grid-cols-3 gap-4">
         <TextArea label="Política de Cancelación" name="politicaCancelacion" value={cfg.politicaCancelacion||''} onChange={handleChange} />

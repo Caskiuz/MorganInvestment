@@ -17,6 +17,7 @@ import alojamientosRoutes from './routes/alojamientos.js';
 import bloqueosRoutes from './routes/bloqueos.js';
 import usersAdminRoutes from './routes/users.js';
 import configRoutes from './routes/config.js';
+import paymentsRoutes from './routes/payments.js';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change';
@@ -66,6 +67,8 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(morgan('dev'));
 const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, standardHeaders: true, legacyHeaders: false });
 app.use('/api/', apiLimiter);
+// Webhook Stripe necesita raw body en su propia ruta, así que montamos payments antes del json parser global
+app.use('/api/payments/stripe/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.resolve('uploads')));
@@ -77,6 +80,7 @@ app.use('/api/alojamientos', alojamientosRoutes);
 app.use('/api/bloqueos', bloqueosRoutes);
 app.use('/api/users', usersAdminRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/reservas';

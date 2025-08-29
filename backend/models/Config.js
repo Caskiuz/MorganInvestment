@@ -6,7 +6,9 @@ const ConfigSchema = new mongoose.Schema({
   telefono: { type: String, default: '' },
   direccion: { type: String, default: '' },
   // Datos de pago
-  metodoPago: { type: String, default: '' }, // por ejemplo 'transferencia', 'paypal', 'stripe'
+  metodoPago: { type: String, enum: ['manual','stripe','paypal'], default: 'manual' },
+  stripePublishableKey: { type: String, default: '' },
+  paypalClientId: { type: String, default: '' },
   pagoCuentaNombre: { type: String, default: '' },
   pagoCuentaNumero: { type: String, default: '' },
   pagoBanco: { type: String, default: '' },
