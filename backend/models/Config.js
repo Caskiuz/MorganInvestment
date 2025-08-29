@@ -17,6 +17,8 @@ const ConfigSchema = new mongoose.Schema({
   politicaCancelacion: { type: String, default: '' },
   politicaCheckIn: { type: String, default: '' },
   politicaCheckOut: { type: String, default: '' },
+  cancelacionHorasAnticipacion: { type: Number, default: 48 },
+  cancelacionPenalizacionPorcentaje: { type: Number, default: 0 },
   // Otros campos dinámicos
   extra: { type: Map, of: String, default: {} }
 }, { timestamps: true });

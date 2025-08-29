@@ -7,6 +7,7 @@ export default function AdminConfig() {
   const [cfg, setCfg] = useState({});
   const [msg, setMsg] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [cancelOptions, setCancelOptions] = useState('');
 
   const load = async () => {
     try {
@@ -14,6 +15,7 @@ export default function AdminConfig() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Error');
       setCfg(d);
+      setCancelOptions(d.cancelOptions || ''); // Load cancellation options if available
     } catch (e) { setMsg(e.message); }
   };
   useEffect(() => { load(); }, []);
@@ -30,6 +32,7 @@ export default function AdminConfig() {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Error');
       setCfg(d); setMsg('Guardado');
+      setCancelOptions(d.cancelOptions || ''); // Update cancellation options after saving
     } catch (e) { setMsg(e.message); }
     setLoading(false);
   };
@@ -64,6 +67,7 @@ export default function AdminConfig() {
         <TextArea label="Política de Cancelación" name="politicaCancelacion" value={cfg.politicaCancelacion||''} onChange={handleChange} />
         <TextArea label="Política Check-In" name="politicaCheckIn" value={cfg.politicaCheckIn||''} onChange={handleChange} />
         <TextArea label="Política Check-Out" name="politicaCheckOut" value={cfg.politicaCheckOut||''} onChange={handleChange} />
+        <TextArea label="Opciones de Cancelación" name="cancelOptions" value={cancelOptions} onChange={e => setCancelOptions(e.target.value)} />
       </div>
       <div className="mt-6 flex gap-3 items-center">
         <button onClick={save} disabled={loading} className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white px-5 py-2 rounded shadow">{loading? 'Guardando...' : 'Guardar'}</button>

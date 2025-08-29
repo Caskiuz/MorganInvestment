@@ -2,6 +2,7 @@ import express from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Reservation from '../models/Reservation.js';
+import Config from '../models/Config.js';
 import jwt from 'jsonwebtoken';
 
 const router = express.Router();
@@ -63,6 +64,12 @@ router.post('/mis-reservas/:id/cancel', async (req, res) => {
   if (!r) return res.status(404).json({ error: 'No encontrada' });
   if (r.userId && r.userId.toString() !== req.user.id && r.email !== req.user.email) return res.status(403).json({ error: 'Sin permiso' });
   if (r.status === 'cancelled') return res.json({ ok: true });
+  const cfg = await Config.findOne();
+  const horas = cfg?.cancelacionHorasAnticipacion ?? 48;
+  const now = new Date();
+  if (r.checkIn && (r.checkIn - now) < horas*60*60*1000) {
+    return res.status(400).json({ error: 'Fuera de ventana de cancelación ('+horas+'h antes).' });
+  }
   r.status = 'cancelled';
   r.cancelledAt = new Date();
   await r.save();

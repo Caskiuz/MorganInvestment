@@ -1,5 +1,7 @@
 import express from 'express';
 import Reservation from '../models/Reservation.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 // Helper para comprobar solapamiento de fechas
 function rangesOverlap(aStart, aEnd, bStart, bEnd) {
@@ -8,11 +10,21 @@ function rangesOverlap(aStart, aEnd, bStart, bEnd) {
 
 const router = express.Router();
 
+// Middleware auth opcional (no bloquea si no hay token)
+function optionalAuth(req, _res, next) {
+  const auth = req.headers.authorization;
+  if (auth) {
+    const token = auth.split(' ')[1];
+    try { req.user = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret_change'); } catch {}
+  }
+  next();
+}
+
 // Crear reserva
-router.post('/', async (req, res) => {
+router.post('/', optionalAuth, async (req, res) => {
   try {
-    const { name, email, phone, alojamientoId, checkIn, checkOut, guests, extras, totalAmount } = req.body;
-    if (!name || !email || !checkIn || !checkOut) return res.status(400).json({ error: 'Faltan datos' });
+  const { name, email, phone, alojamientoId, checkIn, checkOut, guests, extras, totalAmount } = req.body;
+  if (!name || !checkIn || !checkOut) return res.status(400).json({ error: 'Faltan datos' });
 
     const ci = new Date(checkIn);
     const co = new Date(checkOut);
@@ -29,7 +41,13 @@ router.post('/', async (req, res) => {
     }
 
     // Crear reserva — marcamos como 'pending' hasta confirmación manual o pago
-    const reservation = new Reservation({ name, email, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount, status: 'pending' });
+    let finalEmail = email;
+    let userId = undefined;
+    if (req.user) {
+      const u = await User.findById(req.user.id);
+      if (u) { finalEmail = u.email; userId = u._id; }
+    }
+    const reservation = new Reservation({ name, email: finalEmail, phone, alojamientoId, checkIn: ci, checkOut: co, guests, extras, totalAmount, status: 'pending', userId });
     await reservation.save();
     res.json({ ok: true, reservation });
   } catch (err) {
@@ -39,6 +57,7 @@ router.post('/', async (req, res) => {
 });
 
 import adminMiddleware from './_adminMiddleware.js';
+import Config from '../models/Config.js';
 
 // Confirmar reserva (admin)
 router.patch('/:id/confirm', adminMiddleware, async (req, res) => {
@@ -61,7 +80,15 @@ router.patch('/:id/cancel', adminMiddleware, async (req, res) => {
     const id = req.params.id;
     const r = await Reservation.findById(id);
     if (!r) return res.status(404).json({ error: 'Reserva no encontrada' });
+    const cfg = await Config.findOne();
+    const horas = cfg?.cancelacionHorasAnticipacion ?? 48;
+    const now = new Date();
+    if (r.checkIn && (r.checkIn - now) < horas*60*60*1000) {
+      // admin podría forzar; por ahora permitir si query ?force=1
+      if (!req.query.force) return res.status(400).json({ error: 'Fuera de ventana de cancelación. Añade ?force=1 para forzar.' });
+    }
     r.status = 'cancelled';
+    r.cancelledAt = new Date();
     await r.save();
     res.json({ ok: true, reservation: r });
   } catch (err) {
