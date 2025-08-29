@@ -67,6 +67,17 @@ export async function getActividades() {
   }
 }
 
+// Config pública (contacto / políticas básicas)
+export async function getPublicConfig() {
+  try {
+    const res = await fetch(`${API_BASE}/config/public`);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
 // Newsletter
 export async function postNewsletter(email) {
   try {

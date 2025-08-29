@@ -9,6 +9,7 @@ export default function Header({ onNav }) {
   const [showAuth, setShowAuth] = useState(false);
   const [isAuth, setIsAuth] = useState(auth.isAuthenticated());
   const [showReservar, setShowReservar] = useState(false);
+  const [active, setActive] = useState('home');
   React.useEffect(() => {
     const handler = () => setIsAuth(auth.isAuthenticated());
     window.addEventListener('authChanged', handler);
@@ -45,11 +46,12 @@ export default function Header({ onNav }) {
         clearInterval(interval);
       }
     }, 120);
+    setActive(sectionId);
   };
 
   return (
     <header className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md shadow-lg fixed w-full top-0 z-50 border-b border-green-100 animate-fadeInDown">
-      <div className="text-2xl font-bold text-green-700 tracking-wide drop-shadow-lg select-none">Montemorelos</div>
+  <div className="text-2xl font-bold bg-gradient-to-r from-green-700 to-emerald-500 text-transparent bg-clip-text tracking-wide drop-shadow-lg select-none">Montemorelos</div>
       <div className="flex items-center gap-4">
         <nav className="hidden md:flex gap-2 lg:gap-4">
           {[
@@ -60,11 +62,11 @@ export default function Header({ onNav }) {
           ].map(({ label, section }) => (
             <button
               key={section}
-              className="bg-transparent text-gray-700 hover:text-green-600 font-medium px-3 py-2 transition-all duration-200 relative group"
-              onClick={() => onNav(section)}
+              className={`bg-transparent font-medium px-3 py-2 transition-all duration-300 relative group ${active===section? 'text-green-700' : 'text-gray-700 hover:text-green-600'}`}
+              onClick={() => navigateToSection(section)}
             >
               <span className="relative z-10">{label}</span>
-              <span className="absolute left-0 bottom-0 w-0 h-1 bg-green-400 rounded-full group-hover:w-full transition-all duration-300" style={{transitionProperty:'width'}}></span>
+              <span className={`absolute left-0 bottom-0 h-1 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-500 ${active===section? 'w-full' : 'w-0 group-hover:w-full'}`}></span>
             </button>
           ))}
           {isAuth && (

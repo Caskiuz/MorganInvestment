@@ -1,9 +1,16 @@
 import React from 'react';
 import './Footer.css';
+import { getPublicConfig } from '../services/api';
 
 export default function Footer() {
+  const [cfg, setCfg] = React.useState({});
+  React.useEffect(() => { getPublicConfig().then(setCfg); }, []);
+  const tel = cfg.telefono || '826 000 0000';
+  const email = cfg.contactoEmail || 'info@tudominio.com';
+  const dir = cfg.direccion || 'Montemorelos, Nuevo León';
   return (
-    <footer className="bg-gray-900 text-gray-200 pt-10 pb-4 px-4 mt-12">
+    <footer className="bg-gradient-to-b from-gray-950 to-gray-900 text-gray-200 pt-12 pb-4 px-4 mt-12 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.3),transparent_70%)] pointer-events-none" />
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-8">
         {/* Logo y descripción */}
         <div className="flex-1 flex flex-col items-center md:items-start mb-6 md:mb-0">
@@ -28,9 +35,9 @@ export default function Footer() {
         <div className="flex-1">
           <h3 className="font-bold mb-2 text-lg text-white">Contacto</h3>
           <ul className="space-y-1 text-gray-300">
-            <li><span className="inline-block w-5">📞</span> <a href="tel:8261297349" className="hover:underline">826 129 7349</a></li>
-            <li><span className="inline-block w-5">✉️</span> <a href="mailto:jarorioz@gmail.com" className="hover:underline">jarorioz@gmail.com</a></li>
-            <li><span className="inline-block w-5">📍</span> Montemorelos, Nuevo León</li>
+            <li><span className="inline-block w-5">📞</span> <a href={`tel:${tel.replace(/\s+/g,'')}`} className="hover:underline">{tel}</a></li>
+            <li><span className="inline-block w-5">✉️</span> <a href={`mailto:${email}`} className="hover:underline">{email}</a></li>
+            <li><span className="inline-block w-5">📍</span> {dir}</li>
             <li><span className="inline-block w-5">🕒</span> Lun-Dom: 8AM-8PM</li>
           </ul>
           <div className="mt-3">
