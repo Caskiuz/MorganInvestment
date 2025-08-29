@@ -1,6 +1,9 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
@@ -58,6 +61,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Seguridad y parsing
+app.use(helmet({ crossOriginResourcePolicy: false }));
+app.use(morgan('dev'));
+const apiLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 500, standardHeaders: true, legacyHeaders: false });
+app.use('/api/', apiLimiter);
 app.use(express.json());
 // Servir archivos estáticos de uploads
 app.use('/uploads', express.static(path.resolve('uploads')));
@@ -106,6 +114,15 @@ if (process.env.NODE_ENV !== 'test') {
 
 app.get('/', (req, res) => {
   res.send('API de Reservas Montemorelos funcionando');
+});
+
+app.get('/health', (_req, res) => {
+  const status = {
+    status: 'ok',
+    uptime: process.uptime(),
+    mongo: mongoose.connection.readyState // 1 connected
+  };
+  res.json(status);
 });
 
 // Rutas de autenticación
