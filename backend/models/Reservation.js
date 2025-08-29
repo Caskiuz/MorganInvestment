@@ -13,6 +13,9 @@ const ReservationSchema = new mongoose.Schema({
   paymentStatus: { type: String, enum: ['unpaid','processing','paid','failed'], default: 'unpaid' },
   paymentIntentId: { type: String },
   paymentReference: { type: String },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  paidAt: { type: Date },
+  cancelledAt: { type: Date },
   status: { type: String, enum: ['pending', 'confirmed', 'cancelled'], default: 'pending' },
   createdAt: { type: Date, default: Date.now }
 });

@@ -18,6 +18,7 @@ import bloqueosRoutes from './routes/bloqueos.js';
 import usersAdminRoutes from './routes/users.js';
 import configRoutes from './routes/config.js';
 import paymentsRoutes from './routes/payments.js';
+import profileRoutes from './routes/profile.js';
 
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_change';
@@ -81,6 +82,7 @@ app.use('/api/bloqueos', bloqueosRoutes);
 app.use('/api/users', usersAdminRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/profile', profileRoutes);
 
 const PORT = process.env.PORT || 4000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/reservas';

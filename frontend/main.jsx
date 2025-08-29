@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './src/App';
 import AdminReservas from './src/pages/admin/Reservas';
 import AdminLogin from './src/pages/admin/AdminLogin';
+import UserDashboard from './src/pages/user/Dashboard';
 import auth from './src/utils/auth';
 import './src/index.css';
 
@@ -19,6 +20,7 @@ createRoot(document.getElementById('root')).render(
 		<Routes>
 			<Route path="/admin/login" element={<AdminLogin />} />
 			<Route path="/admin" element={<AdminGuard><AdminReservas /></AdminGuard>} />
+			<Route path="/dashboard" element={<UserDashboard />} />
 			<Route path="/*" element={<App />} />
 		</Routes>
 	</BrowserRouter>

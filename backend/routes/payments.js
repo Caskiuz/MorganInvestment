@@ -66,7 +66,7 @@ router.post('/stripe/webhook', express.raw({ type: 'application/json' }), async 
 		const session = event.data.object;
 		const reservationId = session.metadata?.reservationId;
 		if (reservationId) {
-			const r = await Reservation.findByIdAndUpdate(reservationId, { paymentStatus: 'paid', status: 'confirmed' }, { new: true });
+			const r = await Reservation.findByIdAndUpdate(reservationId, { paymentStatus: 'paid', status: 'confirmed', paidAt: new Date() }, { new: true });
 			if (r) {
 				try { await sendReservationEmail(r.email, 'Pago confirmado', buildPaidEmail(r)); } catch(e){ console.error('Email error', e); }
 			}
@@ -135,7 +135,7 @@ router.post('/paypal/capture', async (req, res) => {
 		const capture = await client.execute(request);
 		const reference = capture.result.purchase_units?.[0]?.reference_id;
 		if (capture.result.status === 'COMPLETED' && reference) {
-			const r = await Reservation.findByIdAndUpdate(reference, { paymentStatus: 'paid', status: 'confirmed' }, { new: true });
+			const r = await Reservation.findByIdAndUpdate(reference, { paymentStatus: 'paid', status: 'confirmed', paidAt: new Date() }, { new: true });
 			if (r) { try { await sendReservationEmail(r.email, 'Pago confirmado', buildPaidEmail(r)); } catch(e){ console.error('Email error', e); } }
 		}
 		res.json({ ok: true, capture: capture.result });
