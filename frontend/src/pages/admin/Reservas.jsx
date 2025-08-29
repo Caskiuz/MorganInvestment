@@ -124,6 +124,7 @@ export default function AdminReservas() {
                   <th className="px-2 py-1">Alojamiento</th>
                   <th className="px-2 py-1">Fechas</th>
                   <th className="px-2 py-1">Status</th>
+                  <th className="px-2 py-1">Pago</th>
                   <th className="px-2 py-1">Acciones</th>
                 </tr>
               </thead>
@@ -142,6 +143,35 @@ export default function AdminReservas() {
                       }>
                         {r.status}
                       </span>
+                    </td>
+                    <td className="px-2 py-1">
+                      <span className={
+                        r.paymentStatus==='paid' ? 'bg-green-100 text-green-800 px-2 py-1 rounded' :
+                        r.paymentStatus==='failed' ? 'bg-red-100 text-red-800 px-2 py-1 rounded' :
+                        r.paymentStatus==='processing' ? 'bg-blue-100 text-blue-800 px-2 py-1 rounded' :
+                        'bg-gray-100 text-gray-800 px-2 py-1 rounded'
+                      }>
+                        {r.paymentStatus || 'unpaid'}
+                      </span>
+                      {['unpaid','failed'].includes(r.paymentStatus || 'unpaid') && (
+                        <button className="ml-2 text-xs bg-indigo-600 text-white px-2 py-1 rounded" onClick={async ()=>{
+                          try {
+                            const { fetchAuth } = await import('../../services/api');
+                            // Intentar Stripe primero
+                            const sessionRes = await fetchAuth(`${API_BASE}/payments/create-checkout-session`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ reservationId: r._id })});
+                            const sessionData = await sessionRes.json();
+                            if (sessionRes.ok && sessionData.url) { window.open(sessionData.url, '_blank'); return; }
+                            // Si Stripe no, probar PayPal
+                            const ppRes = await fetchAuth(`${API_BASE}/payments/paypal/create-order`, { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ reservationId: r._id })});
+                            const ppData = await ppRes.json();
+                            if (ppRes.ok) {
+                              const approveLink = (ppData.links||[]).find(l=>l.rel==='approve');
+                              if (approveLink) window.open(approveLink.href, '_blank');
+                              else alert('Orden PayPal creada sin link de aprobación');
+                            } else alert(ppData.error||'Error creando pago');
+                          } catch(e){ alert('Error iniciando pago'); }
+                        }}>Pagar ahora</button>
+                      )}
                     </td>
                     <td className="px-2 py-1">
                       {r.status !== 'confirmed' && <button className="mr-2 px-2 py-1 bg-green-600 text-white rounded" onClick={() => patch(r._id, 'confirm')}>Confirmar</button>}
