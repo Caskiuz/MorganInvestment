@@ -4,6 +4,7 @@ import Header from '../../components/Header';
 import AdminAlojamientos from './Alojamientos';
 import AdminUsuarios from './Usuarios';
 import AdminBloqueos from './Bloqueos';
+import AdminConfig from './Config';
 
 
 export default function AdminReservas() {
@@ -92,7 +93,8 @@ export default function AdminReservas() {
         <button className={tab==='reservas'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('reservas')}>Reservas</button>
         <button className={tab==='alojamientos'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('alojamientos')}>Alojamientos</button>
         <button className={tab==='bloqueos'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('bloqueos')}>Bloqueos</button>
-        <button className={tab==='usuarios'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('usuarios')}>Usuarios</button>
+  <button className={tab==='usuarios'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('usuarios')}>Usuarios</button>
+  <button className={tab==='config'?"font-bold text-blue-800":"text-blue-600"} onClick={()=>setTab('config')}>Config</button>
       </nav>
       {tab==='reservas' && (
         <>
@@ -155,7 +157,8 @@ export default function AdminReservas() {
       )}
       {tab==='alojamientos' && <AdminAlojamientos />}
       {tab==='bloqueos' && <AdminBloqueos alojamientos={alojamientos} />}
-      {tab==='usuarios' && <AdminUsuarios />}
+  {tab==='usuarios' && <AdminUsuarios />}
+  {tab==='config' && <AdminConfig />}
       </section>
     </div>
   );
