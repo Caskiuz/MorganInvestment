@@ -8,7 +8,7 @@ const router = express.Router();
 router.get('/public', async (_req, res) => {
   try {
     const cfg = await Config.findOne() || {};
-    const publicFields = (({ contactoEmail, telefono, direccion, politicaCancelacion, politicaCheckIn, politicaCheckOut }) => ({ contactoEmail, telefono, direccion, politicaCancelacion, politicaCheckIn, politicaCheckOut }))(cfg.toObject ? cfg.toObject() : cfg);
+  const publicFields = (({ contactoEmail, telefono, direccion, politicaCancelacion, politicaCheckIn, politicaCheckOut, cancelacionHorasAnticipacion, cancelacionPenalizacionPorcentaje, metodoPago }) => ({ contactoEmail, telefono, direccion, politicaCancelacion, politicaCheckIn, politicaCheckOut, cancelacionHorasAnticipacion, cancelacionPenalizacionPorcentaje, metodoPago }))(cfg.toObject ? cfg.toObject() : cfg);
     res.json(publicFields);
   } catch (e) { res.status(500).json({ error: 'Error obteniendo configuración' }); }
 });

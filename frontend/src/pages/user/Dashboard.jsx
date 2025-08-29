@@ -72,6 +72,7 @@ function MisReservas() {
   };
   if (loading) return <div>Cargando...</div>;
   if (!list.length) return <div>No tienes reservas todavía.</div>;
+  const now = Date.now();
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full text-sm">
@@ -85,7 +86,12 @@ function MisReservas() {
               <td className="p-2">${r.totalAmount}</td>
               <td className="p-2 flex gap-2">
                 {['unpaid','failed'].includes(r.paymentStatus||'unpaid') && <button onClick={()=>pagar(r)} className="px-2 py-1 text-xs bg-indigo-600 text-white rounded">Pagar</button>}
-                {r.status!=='cancelled' && <button onClick={()=>cancelar(r._id)} className="px-2 py-1 text-xs bg-red-600 text-white rounded">Cancelar</button>}
+                {r.status!=='cancelled' && (()=>{
+                  const diffH = (new Date(r.checkIn).getTime() - now)/3600000;
+                  const ventana =  (r.cancelacionHorasAnticipacion || 48); // fallback
+                  const disabled = diffH < ventana;
+                  return <button disabled={disabled} title={disabled?`No cancelable (<${ventana}h)`:'Cancelar'} onClick={()=>!disabled && cancelar(r._id)} className={`px-2 py-1 text-xs rounded ${disabled? 'bg-gray-300 text-gray-600 cursor-not-allowed':'bg-red-600 text-white'}`}>Cancelar</button>;
+                })()}
               </td>
             </tr>
           ))}

@@ -44,6 +44,8 @@ export default function AdminConfig() {
         <Field label="Correo de contacto" name="contactoEmail" value={cfg.contactoEmail||''} onChange={handleChange} />
         <Field label="Teléfono" name="telefono" value={cfg.telefono||''} onChange={handleChange} />
         <Field label="Dirección" name="direccion" value={cfg.direccion||''} onChange={handleChange} />
+  <Field label="Horas anticipación cancelación" name="cancelacionHorasAnticipacion" type="number" value={cfg.cancelacionHorasAnticipacion||''} onChange={handleChange} />
+  <Field label="Penalización %" name="cancelacionPenalizacionPorcentaje" type="number" value={cfg.cancelacionPenalizacionPorcentaje||''} onChange={handleChange} />
         <label className="flex flex-col text-sm">
           <span className="font-medium mb-1">Método de pago</span>
           <select name="metodoPago" className="border rounded px-3 py-2" value={cfg.metodoPago||'manual'} onChange={handleChange}>
